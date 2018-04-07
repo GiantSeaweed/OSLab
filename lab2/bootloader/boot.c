@@ -4,16 +4,59 @@
 
 void bootMain(void) {
 	/* 加载内核至内存，并跳转执行 */
-	void (*elf)(void);
-	// loading sector 1-200 to memory (kMain.elf)
-	for(int i=0;i<200;i++){
-		readSect((void*)(0x100000+i*SECTSIZE),1);
+	
+	char* buf = (char*)0x400000;
+	// loading kMain.elf to memory 
+	for(int i=0; i<200; i++){
+		readSect((void*)(buf+i*SECTSIZE),i+1);
 	}
-	readSect((void*)(0x100000+200*SECTSIZE),1);//(uMain.elf)
-	elf=(void*)0x100000;
-	elf();
-}
+	
+	struct ELFHeader *elf = (struct ELFHeader*) buf;
+	struct ProgramHeader *ph,*eph;
+	
+	ph = (struct ProgramHeader *)((char*)elf + elf->phoff);
+	eph = ph + elf->phnum;
+	for(; ph < eph; ph++){
+		if(ph->type == 1){	//PT_LOAD
+			// buf+ph->off: the offset of this section in the ELF file
+			// ph->vaddr  : the vaddr of the first byte of this section		
+			for(int i=0; i< ph->filesz; i++)
+				*((char*)ph->vaddr+i) = *((char*)buf + ph->off + i);
 
+			if(ph->filesz < ph->memsz){
+				for(int i = ph->filesz; i < ph->memsz; i++)
+					*((char*)ph->vaddr+i) = 0;
+			}
+			
+		}
+	}
+	
+	void (*entry)(void);
+	entry = (void*)elf->entry;
+	entry();
+}/*
+int loader(char* buf){
+	struct ELFHeader *elf = (void*) buf;
+	struct ProgramHeader *ph,*eph;
+	
+	ph = (void*)elf + elf->phoff;
+	eph = ph + elf->phnum;
+	for(; ph < eph; ph++){
+		if(ph->type == 1){	//PT_LOAD
+			
+			for(int i=0; i< ph->filesz; i++)
+				*((char*)ph->vaddr+i)=*((char*)ph->off+i);
+
+			if(ph->filesz < ph->memsz){
+				for(int i= ph->filesz; i<ph->memsz; i++)
+					*((char*)ph->vaddr+i) = 0;
+			}
+			
+		}
+	}
+	int entry = elf->entry;
+	return entry;
+}*/
 void waitDisk(void) { // waiting for disk
 	while((inByte(0x1F7) & 0xC0) != 0x40);
 }
