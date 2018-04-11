@@ -4,22 +4,21 @@
 
 void bootMain(void) {
 	/* 加载内核至内存，并跳转执行 */
-	
 	char* buf = (char*)0x400000;
-	// loading kMain.elf to memory 
+	/* loading kMain.elf to memory */
 	for(int i=0; i<200; i++){
-		readSect((void*)(buf+i*SECTSIZE),i+1);
+		readSect((void*)(buf + i*SECTSIZE), i+1);
 	}
 	
 	struct ELFHeader *elf = (struct ELFHeader*) buf;
 	struct ProgramHeader *ph,*eph;
 	
-	ph = (struct ProgramHeader *)((char*)elf + elf->phoff);
+	ph = (struct ProgramHeader*)((char*)elf + elf->phoff);
 	eph = ph + elf->phnum;
 	for(; ph < eph; ph++){
 		if(ph->type == 1){	//PT_LOAD
-			// buf+ph->off: the offset of this section in the ELF file
-			// ph->vaddr  : the vaddr of the first byte of this section		
+			// buf+ph->off: the offset of this segment in the ELF file
+			// ph->vaddr  : the vaddr of the first byte of this segment		
 			for(int i=0; i< ph->filesz; i++)
 				*((char*)ph->vaddr+i) = *((char*)buf + ph->off + i);
 
@@ -30,7 +29,6 @@ void bootMain(void) {
 			
 		}
 	}
-	
 	void (*entry)(void);
 	entry = (void*)elf->entry;
 	entry();

@@ -36,7 +36,7 @@ void sys_write(struct TrapFrame *tf) {
 	if (fDesc == 1 || fDesc == 2) { // stdout & stderr
 		for(int i = 0; i < len; i++) {
 			c = *(char *)(str + i);
-			putChar(c);
+			putChar(c);				//print to Debian terminal
 			if (c == '\n') {
 				row++; col = 0;
 				continue;
@@ -44,7 +44,7 @@ void sys_write(struct TrapFrame *tf) {
 			if (col == 80) {
 				row++; col = 0;
 			}
-			video_print(row, col++, c);
+			video_print(row, col++, c);//print to QEMU
 		}
 		tf->eax = len; // return value
 	}

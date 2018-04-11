@@ -23,6 +23,7 @@ void putChar(char ch) {
 /* print to video segment */
 void video_print(int row, int col, char c) {
 	asm ("movl %0, %%edi;"			: :"r"(((80 * row + col) * 2))  :"%edi");
-	asm ("movw %0, %%eax;"			: :"r"(0x0c00 | c) 				:"%eax"); // 0x0黑底,0xc红字, 字母ASCII码
-	asm ("movw %%ax, %%gs:(%%edi);" : : 							:"%edi"); // 写入显存
+	asm ("movb %0, %%ah;"			: :"i"(0x0c) 				:"%eax");
+	asm ("movb %0, %%al;"			: :"r"(c) 				    :"%eax"); // 0x0黑底,0xc红字, 字母ASCII码
+	asm ("movw %%ax, %%gs:(%%edi);" : : 						:"%edi"); // 写入显存
 }

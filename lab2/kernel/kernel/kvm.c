@@ -44,7 +44,7 @@ void initSeg() {
 	asm volatile("ltr %%ax":: "a" (KSEL(SEG_TSS)));
 
 	/*设置正确的段寄存器*/
-	tss.ss0 = KSEL(SEG_KDATA);
+	tss.ss0 =  KSEL(SEG_KDATA);
 	tss.esp0 = 0x200000;//set kernel esp0; where app(user) starts
 
 	lLdt(0);
